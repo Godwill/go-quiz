@@ -22,25 +22,20 @@ func main() {
 
 func quiz(pr []Problem) {
 	timeLimit := flag.Int("limit", 10, "the time limit for the quiz in seconds")
-	timer := time.NewTicker(time.Duration(*timeLimit) * time.Second)
+	flag.Parse()
+	timer := time.NewTimer(time.Duration(*timeLimit) * time.Second)
 
 	correct := 0
 	for i, p := range pr{
+
 		fmt.Printf("Problem #%d: %s = \n", i+1, p.q)
 
-		go func() {
-			for _ = range timer.C {
-				fmt.Print("_")
-			}
-		}()
-
 		answerChan := answer()
-		elapsed := <-timer.C
 
 		select {
 		case <-timer.C:
 			fmt.Printf("Your %v time limit has passed. You took %s seconds to answer. \n",
-				time.Duration(*timeLimit) * time.Second, elapsed)
+				time.Duration(*timeLimit) * time.Second, <-timer.C)
 			score(correct, pr)
 			return
 		case answer := <- answerChan:
@@ -73,7 +68,6 @@ func parseLines(lines [][]string) []Problem{
 			q: line[0],
 			a: strings.TrimSpace(line[1]),
 		}
-
 	}
 
 	return ret
